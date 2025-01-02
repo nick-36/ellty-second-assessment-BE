@@ -9,8 +9,7 @@
     "production:build": "npx prisma generate && npx prisma migrate deploy",
     "build": "npm run clean && npm run build:typescript && npm run production:build",
     "build:typescript": "tsc",
-    "clean": "rm -rf dist",
-    "postbuild": "cp -r prisma package.json .env dist/"
+    "clean": "rm -rf dist"
   },
   "author": "",
   "license": "ISC",
