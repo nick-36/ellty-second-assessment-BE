@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int         @id @default(autoincrement())
+  username     String      @unique
+  email        String      @unique
+  password     String
+  isRegistered Boolean     @default(false)
+  trees        Tree[]
+  operations   Operation[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Tree {
+  id             Int         @id @default(autoincrement())
+  startingNumber Float
+  userId         Int
+  user           User        @relation(fields: [userId], references: [id])
+  operations     Operation[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model Operation {
+  id          Int         @id @default(autoincrement())
+  type        String
+  rightNumber Float
+  result      Float
+  treeId      Int
+  tree        Tree        @relation(fields: [treeId], references: [id])
+  userId      Int
+  user        User        @relation(fields: [userId], references: [id])
+  parentId    Int?
+  parent      Operation?  @relation("OperationTree", fields: [parentId], references: [id])
+  children    Operation[] @relation("OperationTree")
+  createdAt   DateTime    @default(now())
+}
