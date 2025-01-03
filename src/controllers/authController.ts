@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 import * as jwt from "jsonwebtoken";
 import * as bcrypt from "bcryptjs";
@@ -61,7 +61,7 @@ const createAndSendToken = (
   });
 };
 
-export const signUp = async (req: Request, res: Response): Promise<any> => {
+export const signUp = async (req: Request, res: Response) => {
   try {
     const { username, email, password } = req.body;
 
@@ -86,7 +86,7 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
   }
 };
 
-export const login = async (req: Request, res: Response): Promise<any> => {
+export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 

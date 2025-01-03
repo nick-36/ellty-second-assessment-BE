@@ -35,7 +35,7 @@ const calculateResult = (
 export const createTree = async (
   req: AuthRequest,
   res: Response
-): Promise<any> => {
+): Promise<void | Response> => {
   try {
     const { startingNumber }: CreateTreeBody = req.body;
     const userId = req.user?.id;
@@ -60,7 +60,7 @@ export const createTree = async (
 export const getAllTrees = async (
   _req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void | Response> => {
   try {
     const trees = await prisma.tree.findMany({
       include: {
@@ -83,7 +83,10 @@ export const getAllTrees = async (
   }
 };
 
-export const getTree = async (req: Request, res: Response): Promise<any> => {
+export const getTree = async (
+  req: Request,
+  res: Response
+): Promise<void | Response> => {
   try {
     const { id } = req.params;
 
@@ -128,7 +131,7 @@ export const getTree = async (req: Request, res: Response): Promise<any> => {
 export const addOperation = async (
   req: AuthRequest,
   res: Response
-): Promise<any> => {
+): Promise<void | Response> => {
   try {
     const { id: treeId } = req.params;
     const { type, rightNumber, parentOperationId } = req.body;
