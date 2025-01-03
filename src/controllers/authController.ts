@@ -2,11 +2,12 @@ import { Request, RequestHandler, Response } from "express";
 import prisma from "../lib/prisma";
 import * as jwt from "jsonwebtoken";
 import * as bcrypt from "bcryptjs";
-import { User } from "@prisma/client";
+import { Role, User } from "@prisma/client";
 
 interface JWTPayload {
   id: number;
   username: string;
+  role: Role;
 }
 
 export interface AuthRequest extends Request {
@@ -24,10 +25,14 @@ const hashPassword = async (password: string): Promise<string> => {
   return await bcrypt.hash(password, 12);
 };
 
-const signToken = (id: number, username: string): string => {
-  return jwt.sign({ id, username } as JWTPayload, process.env.JWT_SECRET!, {
-    expiresIn: "10d",
-  });
+const signToken = (id: number, username: string, role: Role): string => {
+  return jwt.sign(
+    { id, username, role } as JWTPayload,
+    process.env.JWT_SECRET!,
+    {
+      expiresIn: "10d",
+    }
+  );
 };
 
 const createAndSendToken = (
@@ -35,7 +40,7 @@ const createAndSendToken = (
   statusCode: number,
   res: Response
 ): void => {
-  const token = signToken(user.id, user.username);
+  const token = signToken(user.id, user.username, user?.role);
 
   const cookieOptions: CookieOptions = {
     maxAge: 24 * 60 * 60 * 1000, // 1 day
@@ -72,7 +77,7 @@ export const signUp = async (req: Request, res: Response) => {
         username,
         email,
         password: hashedPassword,
-        isRegistered: true,
+        role: Role.UNREGISTERED,
       },
     });
 
@@ -104,6 +109,73 @@ export const login = async (req: Request, res: Response) => {
     createAndSendToken(user, 201, res);
   } catch (error: any) {
     return res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+export const registerUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        status: "fail",
+        message: "Unauthorized",
+      });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { role: "REGISTERED" },
+    });
+
+    createAndSendToken(updatedUser, 200, res);
+  } catch (error: any) {
+    return res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+export const getCurrentUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        status: "fail",
+        message: "Not authenticated",
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        status: "fail",
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      user,
+    });
+  } catch (error: any) {
+    res.status(500).json({
       status: "error",
       message: error.message,
     });

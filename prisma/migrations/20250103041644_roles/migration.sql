@@ -1,0 +1,2 @@
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('UNREGISTERED', 'REGISTERED', 'ADMIN');

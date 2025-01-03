@@ -12,15 +12,15 @@ datasource db {
 }
 
 model User {
-  id           Int         @id @default(autoincrement())
-  username     String      @unique
-  email        String      @unique
-  password     String
-  isRegistered Boolean     @default(false)
-  trees        Tree[]
-  operations   Operation[]
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id         Int         @id @default(autoincrement())
+  username   String      @unique
+  email      String      @unique
+  password   String
+  role       Role        @default(UNREGISTERED)
+  trees      Tree[]
+  operations Operation[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 }
 
 model Tree {
@@ -46,4 +46,9 @@ model Operation {
   parent      Operation?  @relation("OperationTree", fields: [parentId], references: [id])
   children    Operation[] @relation("OperationTree")
   createdAt   DateTime    @default(now())
+}
+
+enum Role {
+  UNREGISTERED
+  REGISTERED
 }

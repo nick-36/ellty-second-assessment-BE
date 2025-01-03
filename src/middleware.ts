@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from "express";
-import { User } from "@prisma/client";
+import { Request, Response, NextFunction, RequestHandler } from "express";
+import { Role, User } from "@prisma/client";
 import * as jwt from "jsonwebtoken";
 import prisma from "./lib/prisma";
 
@@ -53,4 +53,21 @@ export const protect = async (
       message: "Invalid token or authorization failed",
     });
   }
+};
+
+export const restrictTo = (...roles: Role[]): RequestHandler => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user?.role || !roles.includes(req.user.role as Role)) {
+        res.status(403).json({
+          status: "fail",
+          message: "You do not have permission to perform this action",
+        });
+        return;
+      }
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
 };
